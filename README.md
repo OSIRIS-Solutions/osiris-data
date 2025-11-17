@@ -29,11 +29,29 @@ Additionally, you have to copy the **configuration file** `config.default.ini` a
 In this file, you must modify the values according to your needs. 
 
 
-### Prepare
+### Use OsirisIO
 
-To set up this feature, you must change the OpenAlex-ID of your institute in the `config.ini` file.
+This is a short example on how to use the OsirisIO function:
 
-```ini
-[OpenAlex]
-Institution = I7935750
+Initialize:
+```python
+OSIRIS = OsirisIO(connection="mongodb://localhost:27017/", database="osiris")
+```
+
+Delete all activities:
+```python
+OSIRIS.delete_collection('activities')
+```
+
+Add a new activity:
+```python
+OSIRIS.add_activity(activity)
+```
+
+### Use OpenAlexParser
+
+Setup OpenAlexParser
+```python
+OSIRIS = OsirisIO(connection="mongodb://localhost:27017/", database="osiris")
+OPENALEX = OpenAlexParser(OSIRIS, YourInstituteId, YourEmail)
 ```
