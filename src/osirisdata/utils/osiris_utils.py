@@ -55,29 +55,57 @@ MODULES = {
     "edition": {"edition": Annotated[int, Field(ge=1)]},
     "editors": {"editors": list[Person]},
     "editorial": {"editor_type": (str | None)},
-    "event-select": {},
-    "funding_type": {},
+    "event-select": {
+            # Only frontend?
+        },
+    "funding_type": {
+        "funding_type": (str | None)
+    },
     "guest-category": { "category": (str | None)},
     "gender": (Gender | None),
     "nationality": {"country": Annotated[str, Field()]}
+    # TODO: continue
 }
+
+
+# TODO:
+# Change iteration from modules to fields (see AdminTypes in Mongo) to check which fields are defined as required
+#
+# NOTE:
+# Find out if changing default enum values is written to mongo and where
+# Find out if fields list has same naming convention as module list (AdminTypes in MongoDB)
 
 
 def build_validator(key, modules: list[str], field_dict):
     data_structure = {}
+
+    # Mandatory for OSIRIS functioning:
+    if not "date" in modules:
+        modules.append("date")
+
+    # Main loop on modules
     for mod in modules:
         mod = mod.strip("*")
-        if mod in field_dict:
+        if mod in field_dict: # first check admin field for new altered definitions and custom fields
             data_structure[mod] = field_dict[mod]
-        elif mod in MODULES:
+        elif mod in MODULES: # find field in default list
             for field_name, field_info in MODULES[mod].items():
                 data_structure[field_name] = field_info
         else:
-            raise KeyError(f"Could not find module or field named: {mod}")
+            raise KeyError(f"OSIRIS configuration fail: Could not find module or field named '{mod}'") # critical failure
     return create_model(key, **data_structure)
 
 
 def getValidators(types: list[dict], fields: list[dict]) -> dict:
+    '''
+    
+    Input:
+        types: List of all types from collection 'AdminTypes'
+        fields: List of all fields from collection 'AdminFields'
+
+    Output:
+        dict where keys are [type]-[subtype] of all defined activity types in OSIRIS and value are pydantic classes to validate the 
+    '''
     validators = {}
     field_dict = {field["id"]: field["format"] for field in fields}
     for t in types:
