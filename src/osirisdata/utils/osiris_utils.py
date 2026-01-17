@@ -2,7 +2,7 @@ from enum import Enum
 from typing import Annotated, Literal
 from bson.objectid import ObjectId
 
-from pydantic import BaseModel, Field, ValidationError, create_model
+from pydantic import BaseModel, Field, ValidationError, create_model, UrlConstraints
 
 
 class Position(str, Enum):
@@ -16,6 +16,52 @@ class Gender(str, Enum):
     MALE = "m"
     NOINFO = "-"
 
+class StatusOA(str, Enum):
+    CLOSED = "closed"
+    OPEN ="open"
+    DIAMOND ="diamond"
+    GOLD = "gold"
+    GREEN = "green"
+    HYBRID = "hybrid"
+    BRONZE ="bronze"
+
+class Languages(str, Enum):
+    DE = "de"
+    EN = "en"
+    FR = "fr"
+    ES = "es"
+    IT = "it"
+    OTHER = "other"
+
+class Scope(str, Enum):
+    LOCAL = "local"
+    REGIONAL = "regional"
+    NATIONAL ="national"
+    INTERNATIONAL = "international"
+
+class Software(str, Enum):
+    SOFTWARE = "software"
+    DATABASE = "database"
+    DATASET = "dataset"
+    WEBTOOL = "webtool"
+    REPORT = "report"
+
+class StudentCategory(str, Enum):
+    BACHELOR = "bachelor thesis"
+    MASTER = "master thesis"
+    DOCTOR = "doctoral thesis"
+    INTERNSHIP = "internship"
+    OTHER = "other"
+
+
+
+
+
+
+
+
+
+
 class Person(BaseModel):
     last: str
     first: str
@@ -24,6 +70,8 @@ class Person(BaseModel):
     user: str | None = None
     approved: bool | None = None
     sws: int | None = None
+
+
 
 
 class SplitDate(BaseModel):
@@ -72,7 +120,60 @@ MODULES = {
     "issn": {"issn": Annotated[str, Field(pattern=r"^\d{4}-\d{4}$")]},
     "issue": {"issue": (str | None)},
     "iteration": {"iteration": (str | None)}, # TODO: check if iteration is enum
-    "journal": {"journal": (str | None), "journal_id": (ObjectId | None) },
+    "journal": {
+        "journal": (str | None), 
+        "journal_id": (ObjectId | None)
+    },
+    "lecture-invited": {"lecture_invited": (bool | None)},
+    "lecture-type": {"lecture_type": (str | None)}, # TODO: check lecture_types
+    "license": {"license": (str | None)}, # TODO: check licence 
+    "link": {"link": (UrlConstraints | None) },
+    "location": {"location": (str | None)},
+    "magazine": {"magazine": (str | None) },
+    "online-ahead-of-print": {"epub": (bool | None) },
+    "openaccess": {"open_access": (bool | None)},
+    "openaccess-status": {
+        "open_access": (bool | None),
+        "oa_status": (StatusOA | None)
+    },
+    "pages": {"pages": (str | None)},
+    "peer-reviewed": {"peer-reviewed": (bool | None)},
+    "person": {"name": (str | None), # TODO: improve person name with pattern check
+               "affiliation": (str | None),
+               "academic_title": (str | None)},
+    "person-only": {"name": (str | None)},  # TODO: improve person name with pattern check
+    "person-organization": {"name": (str | None),
+                            "organization": (str | None)},
+    "projects": {"projects": Annotated[list[Projects]]}, # TODO: get projects from DB
+    "pub-language": {"pub_language": (Languages | None)},
+    "publisher": {"publisher": (str | None)},
+    "pubmed": {"pubmed": (int | None)},
+    "pubtype": {"pubtype": (str | None)},
+    "review-type": {"review-type": (str | None)},
+    "role": {"role": (str | None)},
+    "scientist": {"authors": Annotated[list[Person], Field(max_length=1)]},
+    "semester-select": { },
+    "scope": {"scope": (Scope | None)},
+    "software-link": {"link": (UrlConstraints | None)},
+    "software-type": {"software_type": (Software | None) },
+    "software-venue": {"software_venue": (str | None) },
+    "status": {"status":}, # TODO: find out status structure
+    "student-category": {"category": (StudentCategory | None)},
+    "tags": {"": },
+    "thesis": {"": },
+    "supervisor": {"": },
+    "supervisor-thesis": {"": },
+    "teaching-category": {"": },
+    "teaching-course": {"": },
+    "title": {"": },
+    "subtitle": {"": },
+    "university": {"": },
+    "version": {"": },
+    "venue": {"": },
+    "volume": {"": },
+    "political_consultation": {"": },
+    "organization": {"": },
+    "organizations": {"": }
     # TODO: continue list
 }
 
