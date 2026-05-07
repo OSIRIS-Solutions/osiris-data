@@ -7,11 +7,12 @@ from osirisdata.utils import osiris_utils
 
 class OsirisIO:
 
-    def __init__(self, connection: str, database: str):
+    def __init__(self, connection: str, database: str, validation: bool = True):
         self.client : MongoClient = MongoClient(connection)
         self.osiris = self.client[database]
-
-        self.validators = osiris_utils.getValidators(self.osiris)
+        self.validation = validation
+        if self.validation:
+            self.validators = osiris_utils.getValidators(self.osiris)
 
 
     def _check_activity(self, element: dict) -> dict[str, Any]:
@@ -24,6 +25,8 @@ class OsirisIO:
         osiris_type = self.osiris["adminTypes"].find_one({"id": activity_subtype})
         if not osiris_type:
             raise KeyError(f"Activity type {activity_type} not found in OSIRIS")
+        if not self.validation:
+            return element
         return self.validators[f"{activity_type}#{activity_subtype}"].model_validate(element).model_dump()
 
 
