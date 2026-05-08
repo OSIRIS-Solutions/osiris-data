@@ -9,6 +9,7 @@ dependencies = [
   "levenshtein",
   "requests",
   "pydantic",
-  "pydantic-extra-types"
+  "pydantic-extra-types",
+  "pyyaml"
 ]
 license = "MIT"

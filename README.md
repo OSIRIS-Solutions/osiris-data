@@ -34,6 +34,21 @@ Now you can install the python library **osirisdata** and all dependencies. Ther
 make install
 ```
 
+## Use Scripts
+
+### generate_json_schema.py
+
+This Script generates JSON schema of all the activity types in your OSIRIS instance.
+
+Make sure that you have a `config.yaml` file in the top directory of this project with your OSIRIS information in it. 
+An example for the config file is `config.template.yaml`.
+
+Execute the script:
+```bash
+python scripts/generate_json_schema.py 
+```
+If there are no Errors you can find the JSON schemas of all your activity types in the `schemas` directory.
+
 ## Use Library
 
 ### OsirisIO
