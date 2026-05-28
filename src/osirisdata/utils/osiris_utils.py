@@ -175,7 +175,7 @@ def mapping_admin_types(field: dict):
         case "str-list":
             return list[str]
         case "list":
-            values = Literal[[x[0] for x in field["values"]]]
+            values = Literal[tuple([x[0] for x in field["values"]])]
             if field.get("multiple", 0) == 1:
                 return list[values]
             if field.get("others", 0) == 1:
@@ -240,6 +240,7 @@ def build_validator(
 
     # Main loop on modules
     for module, module_info in type_field_names.items():
+        # print(f"Processing module {module} for {key}")
         found_type = {}
         if module in admin_fields_dict.keys():
             # first check admin field for new altered definitions and custom fields that override default modules
@@ -262,7 +263,10 @@ def build_validator(
             if props.get("required", False):
                 data_structure[field_name] = field_info
             else:
-                data_structure[field_name] = (field_info | None, None)
+                if field_info is None:
+                    data_structure[field_name] = (field_info, None)
+                else:
+                    data_structure[field_name] = (field_info | None, None)
 
     # print("DATASTRUCTURE:")
     # print(data_structure)
@@ -276,9 +280,13 @@ def set_dynamic_literals(osiris: Database):
     MODULES.update({"country": {"country": osiris_countries}})
     MODULES.update({"nationality": {"country": osiris_countries}})
 
-    osiris_tags = Literal[
-        tuple([x for x in [y["value"] for y in osiris["adminGeneral"].find({"key": "tags"})]])
-    ]
+    tags = osiris["adminGeneral"].find_one({"key": "tags"})
+    if tags:
+        osiris_tags = Literal[
+            tuple([x for x in [y["value"] for y in tags]])
+        ]
+    else:
+        osiris_tags = str
     MODULES.update({"tags": {"tags": list[osiris_tags]},})
 
     osiris_projects = Literal[tuple([str(x["_id"]) for x in osiris["projects"].find()])]
@@ -303,6 +311,7 @@ def getValidators(osiris: Database, validation_extra: Literal["allow","ignore", 
     validators = {}
     for t in admin_types:
         key = f"{t['parent']}#{t['id']}"
+        # print(f"Building validator for {key}")
         if t.get("fields"):
             validators[key] = build_validator(key, t["fields"], admin_fields_dict, validation_extra)
     return validators
