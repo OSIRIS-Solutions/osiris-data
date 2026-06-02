@@ -1,3 +1,4 @@
+import datetime
 from typing import Any, Literal
 
 from pymongo import MongoClient
@@ -25,10 +26,20 @@ class OsirisIO:
             raise KeyError("Activity needs 'subtype' key")
         osiris_type = self.osiris["adminTypes"].find_one({"id": activity_subtype})
         if not osiris_type:
-            raise KeyError(f"Activity type {activity_type} not found in OSIRIS")
+            raise KeyError(f"Activity type: {activity_type}/{activity_subtype} not found in OSIRIS")
         if not self.validation:
             return element
-        return self.validators[f"{activity_type}#{activity_subtype}"].model_validate(element).model_dump()
+        if not element.get("history"):
+            element["history"] = []
+        element["history"].append(
+            {
+                "date": datetime.date.today().isoformat(),
+                "type": "import",
+                "subtype": "python script"
+            }
+        )
+        element["created"] = datetime.date.today().isoformat()
+        return self.validators[f"{activity_type}#{activity_subtype}"].model_validate(element).model_dump(mode="json")
 
 
 
@@ -49,11 +60,26 @@ class OsirisIO:
             return user["username"]
         return None
 
-    def get_journal(self, issn: list[str] | str):
-        if isinstance(issn, list):
-            return self.osiris["journals"].find_one({"issn": {"$in": issn}})
+    def get_journal(self, search: list[str] | str, field: Literal["issn", "journal"] = "issn") -> dict | None:
+        """
+        Get a journal from the database by either ISSN or journal name.
+        """
+        if isinstance(search, list):
+            return self.osiris["journals"].find_one({field: {"$in": search}})
         else:
-            return self.osiris["journals"].find_one({"issn": {"$in": [issn]}})
+            return self.osiris["journals"].find_one({field: {"$in": [search]}})
+
+    def get_journal_id(self, search: list[str] | str, field: Literal["issn", "journal"] = "issn") -> str :
+        """
+        Get a journal from the database by either ISSN or journal name.
+        """
+        if isinstance(search, list):
+            journal = self.osiris["journals"].find_one({field: {"$in": search}})
+        else:
+            journal = self.osiris["journals"].find_one({field: {"$in": [search]}})
+        if journal:
+            return str(journal.get("_id"))
+        return ''
 
     def add_journal(self, new_journal: dict) -> int:
         new_doc = self.osiris["journals"].insert_one(new_journal)

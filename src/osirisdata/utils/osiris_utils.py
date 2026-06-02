@@ -1,12 +1,11 @@
 from typing import Annotated, Any, Literal
 
-from pydantic import AnyUrl, BaseModel, ConfigDict, Field, create_model
+from pydantic import HttpUrl, BaseModel, ConfigDict, Field, create_model
 
 from pydantic_extra_types.isbn import ISBN
 
 from pymongo.cursor import Cursor
 from pymongo.database import Database
-from datetime import date
 
 
 class Person(BaseModel):
@@ -26,8 +25,8 @@ class SplitDate(BaseModel):
 
 
 MODULES: dict[str, dict[str, Any]] = {
-    "authors": {"authors": Annotated[list[Person], Field(min_length=1)]},
-    "author-table": {"authors": Annotated[list[Person], Field(min_length=1)]},
+    "authors": {"authors": list[Person]},
+    "author-table": {"authors": list[Person]},
     "book-series": {"series": str},
     "book-title": {"book": str},
     "city": {"city": str},
@@ -65,7 +64,7 @@ MODULES: dict[str, dict[str, Any]] = {
     "lecture-invited": {"lecture_invited": bool},
     "lecture-type": {"lecture_type": Literal["short", "long", "repetition"]},
     "license": {"license": str},
-    "link": {"link": AnyUrl},
+    "link": {"link": HttpUrl},
     "location": {"location": str},
     "magazine": {"magazine": str},
     "online-ahead-of-print": {"epub": bool},
@@ -95,7 +94,7 @@ MODULES: dict[str, dict[str, Any]] = {
     "scientist": {"user": str},
     "semester-select": {},
     "scope": {"scope": Literal["local", "regional", "national", "international"]},
-    "software-link": {"link": AnyUrl},
+    "software-link": {"link": HttpUrl},
     "software-type": {
         "software_type": Literal["software", "database", "dataset", "webtool", "report"]
     },
@@ -114,10 +113,10 @@ MODULES: dict[str, dict[str, Any]] = {
     },
     
     "thesis": {
-        "category": (Literal["bachelor", "master", "diploma", "doctor", "habilitation"])
+        "thesis": (Literal["bachelor", "master", "diploma", "doctor", "habilitation"])
     },
-    "supervisor": {"authors": Annotated[list[Person], Field(min_length=1)]},
-    "supervisor-thesis": {"authors": Annotated[list[Person], Field(min_length=1)]},
+    "supervisor": {"authors": list[Person]},
+    "supervisor-thesis": {"authors": list[Person]},
     "teaching-category": {
         "category": (
             Literal["lecture", "practical-lecture", "seminar", "project", "other"]
@@ -169,9 +168,9 @@ def mapping_admin_types(field: dict):
         case "bool" | "bool-check":
             return bool
         case "date":
-            return date
+            return Annotated[str, Field(pattern=r"^\d{4}-\d{2}(?:-\d{2})?$")]
         case "url":
-            return AnyUrl
+            return HttpUrl
         case "str-list":
             return list[str]
         case "list":
@@ -210,17 +209,17 @@ def build_validator(
     data_structure["affiliated_positions"] = (Any | None, None)
     data_structure["cooperative"] = (Any | None, None)
     data_structure["rendered"] = (Any | None, None)
-    data_structure["start_date"] = (date | None, None)
-    data_structure["end_date"] = (date | None, None)
+    data_structure["start_date"] = (Annotated[str, Field(pattern=r"^\d{4}-\d{2}(?:-\d{2})?$")] | None, None)
+    data_structure["end_date"] = (Annotated[str, Field(pattern=r"^\d{4}-\d{2}(?:-\d{2})?$")] | None, None)
     data_structure["start"] = (SplitDate | None, None)
     data_structure["end"] = (SplitDate | None, None)
     data_structure["funding"] = (Any | None, None)
     data_structure["comment"] = (Any | None, None)
     data_structure["epub-delay"] = (Any | None, None)
     data_structure["impact"] = (Any | None, None)
-    data_structure["created"] = (date | None, None)
+    data_structure["created"] = (Annotated[str, Field(pattern=r"^\d{4}-\d{2}(?:-\d{2})?$")] | None, None)
     data_structure["created_by"] = (str | None, None)
-    data_structure["updated"] = (date | None, None)
+    data_structure["updated"] = (Annotated[str, Field(pattern=r"^\d{4}-\d{2}(?:-\d{2})?$")] | None, None)
     data_structure["updated_by"] = (str | None, None)
     data_structure["units"] = (list[Any] | None, None)
     data_structure["history"] = (list[dict[str, Any]] | None, None)
@@ -228,9 +227,9 @@ def build_validator(
     data_structure["projects"] = (list[str] | None, None)
 
     # Mandatory for OSIRIS functioning:
-    date_module = {"type": "field", "id": "date", "props": {"required": True}}
-    if not date_module in type_fields:
-        type_fields.append(date_module)
+    # date_module = {"type": "field", "id": "date", "props": {"required": True}}
+    # if not date_module in type_fields:
+    #     type_fields.append(date_module)
 
     type_field_names = {
         str(tf["id"]): tf
