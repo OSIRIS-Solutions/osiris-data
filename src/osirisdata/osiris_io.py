@@ -39,7 +39,8 @@ class OsirisIO:
             }
         )
         element["created"] = datetime.date.today().isoformat()
-        return self.validators[f"{activity_type}#{activity_subtype}"].model_validate(element).model_dump(mode="json")
+        validated_element = self.validators[f"{activity_type}#{activity_subtype}"].model_validate(element)
+        return validated_element.model_dump(mode="json", exclude_none=True)
 
 
 

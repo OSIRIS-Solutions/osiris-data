@@ -13,9 +13,10 @@ class Person(BaseModel):
     first: str
     aoi: bool
     position: Literal["first", "middle", "corresponding", "last"]
-    user: str | None = None
+    user: str = ""
     approved: bool | None = None
     sws: int | None = None
+    oricid: str | None = None
 
 
 class SplitDate(BaseModel):
