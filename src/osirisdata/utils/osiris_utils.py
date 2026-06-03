@@ -34,7 +34,7 @@ MODULES: dict[str, dict[str, Any]] = {
     "conference": {"conference_id": str, "conference": str},
     "correction": {"correction": bool},
     "date-range": {"start": SplitDate, "end": SplitDate},
-    "date-range-ongoing": {"start": SplitDate, "end_date": None},
+    "date-range-ongoing": {"start": SplitDate, "end": None},
     "date": {
         f_name: Annotated[
             f_info.asdict()["annotation"],
