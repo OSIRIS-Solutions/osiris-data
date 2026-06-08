@@ -35,7 +35,7 @@ class OsirisIO:
             {
                 "date": datetime.date.today().isoformat(),
                 "type": "import",
-                "subtype": "python script"
+                "source": "Python Script"
             }
         )
         element["created"] = datetime.date.today().isoformat()
